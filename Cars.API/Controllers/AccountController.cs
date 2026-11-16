@@ -71,7 +71,7 @@ public class AccountController : BaseApiController
             ?? throw new InvalidOperationException("Brak Client:BaseUrl.");
 
         var confirmationUrl =
-            $"{clientBaseUrl}/confirm-email"
+            $"{clientBaseUrl}/account/confirm-email"
             + $"?userId={Uri.EscapeDataString(user.Id)}"
             + $"&token={Uri.EscapeDataString(encodedToken)}";
 
@@ -177,7 +177,7 @@ public class AccountController : BaseApiController
                 ?? throw new InvalidOperationException("Brak Client:BaseUrl.");
     
             var resetUrl =
-                $"{clientBaseUrl}/reset-password"
+                $"{clientBaseUrl}/account/reset-password"
                 + $"?email={Uri.EscapeDataString(user.Email!)}"
                 + $"&token={Uri.EscapeDataString(encodedToken)}";
     

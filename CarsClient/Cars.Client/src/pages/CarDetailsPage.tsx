@@ -4,6 +4,7 @@ import { getCarById } from "../services/carService";
 import type { Car } from "../models/Car";
 import axios from "axios";
 import { useCarUiStore } from '../store/useCarUiStore';
+import { useAuthStore } from '../store/useAuthStore';
 
 export default function CarDetailsPage() {
     const { id } = useParams();
@@ -12,8 +13,23 @@ export default function CarDetailsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    const favoriteCarIds = useCarUiStore( (state) => state.favoriteCarIds );
-    const toggleFavorite = useCarUiStore( (state) => state.toggleFavorite );
+    // pobranie użytkowika
+    const user = useAuthStore((state) => state.user);
+
+    const favoriteCarIds =
+        useCarUiStore(
+            (state) =>
+                user
+                    ? state.favoriteCarIdsByUser[
+                    user.id
+                    ] ?? []
+                    : [],
+        );
+    const toggleFavorite =
+        useCarUiStore(
+            (state) =>
+                state.toggleFavorite,
+        );
 
     useEffect(() => {
         if (!id) return;
@@ -73,16 +89,12 @@ export default function CarDetailsPage() {
             <div>
                 <Link to="/cars" className="button">
                     Przejdź do listy samochodów
-                </Link>
-                
-                {"    |    "}   
+                </Link> 
 
                 <Link to={`/cars/${id}/edit`} className="button">
                     Edytuj samochód
                 </Link>
-
-                {"    |    "}   
-
+  
                 <button
                     type="button"
                     className={
@@ -90,7 +102,12 @@ export default function CarDetailsPage() {
                             ? 'favorite-button active-favorite'
                             : 'favorite-button'
                     }
-                    onClick={() => toggleFavorite(car.id)}
+
+                    onClick={() => {
+                        if (user) {
+                            toggleFavorite(user.id, car.id);
+                        }
+                    }}
                 >
                     {isFavorite ? 'Ulubiony' : '+ Ulubione'}
                 </button>

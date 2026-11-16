@@ -5,6 +5,7 @@ import { getCars, deleteCar } from '../services/carService';
 import CarCard from '../components/CarCard';
 import axios from 'axios';
 import { useCarUiStore } from '../store/useCarUiStore';
+import { useAuthStore } from '../store/useAuthStore';
 
 
 export default function CarsPage() {
@@ -12,11 +13,27 @@ export default function CarsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    // pobranie użytkownika
+    const user =
+        useAuthStore(
+            (state) => state.user,
+        );
+
     const searchTerm = useCarUiStore( (state) => state.searchTerm );
     const setSearchTerm = useCarUiStore((state) => state.setSearchTerm);
     const showFavoritesOnly = useCarUiStore( (state) => state.showFavoritesOnly );
-    const setShowFavoritesOnly = useCarUiStore( (state) => state.setShowFavoritesOnly );
-    const favoriteCarIds = useCarUiStore( (state) => state.favoriteCarIds );
+    const setShowFavoritesOnly = useCarUiStore((state) => state.setShowFavoritesOnly);
+
+    const favoriteCarIdsByUser =
+        useCarUiStore(
+            (state) =>
+                state.favoriteCarIdsByUser,
+        );
+    const favoriteCarIds =
+        user
+            ? favoriteCarIdsByUser[user.id] ?? []
+            : [];
+
 
     const normalizedSearch = searchTerm.trim().toLowerCase();
     
@@ -99,7 +116,8 @@ export default function CarsPage() {
         try {
             await deleteCar(id);
 
-            removeFavorite(id);
+            if (user) { removeFavorite(user.id, id); }
+
 
             setCars(
                 (currentCars) =>
