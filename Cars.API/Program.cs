@@ -115,8 +115,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ApiExceptionMiddleware>();
-app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
@@ -128,19 +130,16 @@ var services = scope.ServiceProvider;
 try
 {
     var context = services.GetRequiredService<DataContext>();
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
     await context.Database.MigrateAsync();
+    // Dane samochodów.
     await Seed.SeedData(context);
-
-    var userManager = services.GetRequiredService <
-        UserManager < AppUser >> ();
-    
-    var roleManager = services.GetRequiredService <
-        RoleManager < IdentityRole >> ();
-    
-    await IdentitySeed.SeedAsync(
-        userManager,
-        roleManager);
-
+    // Dane wyposażenia.
+    await FeatureSeed.SeedAsync(context);
+    // Role i konto administratora.
+    await IdentitySeed.SeedAsync(userManager, roleManager);
 }
 catch (Exception ex)
 {
